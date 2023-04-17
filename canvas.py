@@ -56,10 +56,11 @@ class Canvas(object):
 
     def mouse_move(self, widget, event):
         if event.state & Gdk.EventMask.BUTTON_PRESS_MASK:
-            curr_brush = self.brushes[-1]
-            curr_brush.add_point((event.x, event.y))
-            widget.queue_draw()
-            if self.mode == "eraser":
+            if self.mode == "draw":
+                curr_brush = self.brushes[-1]
+                curr_brush.add_point((event.x, event.y))
+                widget.queue_draw()
+            elif self.mode == "eraser":
                 for brush in self.brushes:
                     if brush == curr_brush:
                         continue

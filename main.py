@@ -1,4 +1,5 @@
 from canvas import *
+from tools import *
 class DrawingApp(object):
     def __init__(self, width, height):
         self.window = Gtk.Window()
@@ -9,14 +10,16 @@ class DrawingApp(object):
             self.window.set_visual(visual)
         self.window.set_app_paintable(True)
 
-        
+
         self.window.connect('destroy', Gtk.main_quit)
         self.fixed = Gtk.Fixed()
         self.window.add(self.fixed)
         self.canvas = Canvas()
-        
-        
+        self.tools = DrawTools(self.fixed)
+
         self.fixed.put(self.canvas.draw_area, 0, 0)
+        self.fixed.put(self.tools, 0, 0)
+
         self.window.show_all()
         self.window.fullscreen()
         self.window.connect("size-allocate", self.resize)
