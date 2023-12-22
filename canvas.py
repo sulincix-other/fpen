@@ -5,7 +5,7 @@ import math
 import time
 import cairo
 import gi; gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 import random
 
@@ -59,7 +59,8 @@ class Canvas(object):
             if self.mode == "draw":
                 curr_brush = self.brushes[-1]
                 curr_brush.add_point((event.x, event.y))
-                widget.queue_draw()
+                #widget.queue_draw()
+                GLib.idle_add(widget.queue_draw)
             elif self.mode == "eraser":
                 for brush in self.brushes:
                     if brush == curr_brush:
