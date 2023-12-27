@@ -42,6 +42,10 @@ class Canvas(object):
                 cr.line_to(x, y)
             cr.stroke()
 
+    def clear(self):
+        self.brushes = []
+        GLib.idle_add(self.draw_area.queue_draw)
+
     def init_draw_area(self):
         draw_area = Gtk.DrawingArea()
         draw_area.connect('draw', self.draw)
@@ -56,11 +60,17 @@ class Canvas(object):
 
     def mouse_move(self, widget, event):
         if event.state & Gdk.EventMask.BUTTON_PRESS_MASK:
+            curr_brush = self.brushes[-1]
             if self.mode == "draw":
-                curr_brush = self.brushes[-1]
+                
+                
                 curr_brush.add_point((event.x, event.y))
-                #widget.queue_draw()
-                GLib.idle_add(widget.queue_draw)
+
+                start_point = curr_brush.stroke[-1]
+                end_point = (event.x, event.y)
+                # Only redraw the area between the last and new points
+                self.draw_partial(widget, start_point, end_point)
+                #
             elif self.mode == "eraser":
                 for brush in self.brushes:
                     if brush == curr_brush:
@@ -69,6 +79,18 @@ class Canvas(object):
                         if (x - event.x)**2 + (y - event.y)**2 < self.eraser_size:
                             if brush in self.brushes:
                                 self.brushes.remove(brush)
+                GLib.idle_add(widget.queue_draw)
+
+    def draw_partial(self, widget, last_point, new_point):
+        if last_point:
+            # Get the bounding box of the area to redraw
+            x1, y1 = last_point
+            x2, y2 = new_point
+            x_min, y_min, x_max, y_max = min(x1, x2)-50, min(y1, y2)-50, max(x1, x2)+50, max(y1, y2)+50
+
+            # Queue a draw only for the specified area
+            widget.queue_draw_area(int(x_min), int(y_min), int(x_max - x_min), int(y_max - y_min))
+
 
     def mouse_press(self, widget, event):
         if event.button == Gdk.BUTTON_PRIMARY:
@@ -77,7 +99,11 @@ class Canvas(object):
             self.brushes.append(brush)
             widget.queue_draw()
         elif event.button == Gdk.BUTTON_SECONDARY:
-            self.brushes = []
+            if self.mode == "draw":
+                self.mode = "eraser"
+            else:
+                self.mode = "draw"
+            #self.brushes = []
 
     def mouse_release(self, widget, event):
         widget.queue_draw()
