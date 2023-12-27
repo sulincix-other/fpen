@@ -66,7 +66,7 @@ class Canvas(object):
                 
                 curr_brush.add_point((event.x, event.y))
 
-                start_point = curr_brush.stroke[-1]
+                start_point = curr_brush.stroke[-2]
                 end_point = (event.x, event.y)
                 # Only redraw the area between the last and new points
                 self.draw_partial(widget, start_point, end_point)
@@ -86,7 +86,7 @@ class Canvas(object):
             # Get the bounding box of the area to redraw
             x1, y1 = last_point
             x2, y2 = new_point
-            x_min, y_min, x_max, y_max = min(x1, x2)-50, min(y1, y2)-50, max(x1, x2)+50, max(y1, y2)+50
+            x_min, y_min, x_max, y_max = min(x1, x2)-10, min(y1, y2)-10, max(x1, x2)+10, max(y1, y2)+10
 
             # Queue a draw only for the specified area
             widget.queue_draw_area(int(x_min), int(y_min), int(x_max - x_min), int(y_max - y_min))
