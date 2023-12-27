@@ -31,16 +31,33 @@ class Canvas(object):
         da = widget
         cr.set_source_rgba(1, 1, 1, 0.1)
         cr.paint()
-        #cr.set_operator(cairo.OPERATOR_SOURCE)#gets rid over overlap, but problematic with multiple colors
+
+        # Enable anti-aliasing
+        cr.set_antialias(cairo.ANTIALIAS_BEST)
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        cr.set_line_join(cairo.LINE_JOIN_ROUND)
+
         for brush in self.brushes:
             cr.set_source_rgba(*brush.rgba_color)
             cr.set_line_width(brush.width)
-            cr.set_line_cap(1)
-            cr.set_line_join(cairo.LINE_JOIN_ROUND)
-            cr.new_path()
-            for x, y in brush.stroke:
+        
+            if len(brush.stroke) > 1:
+                # Move to the first point
+                x, y = brush.stroke[0]
+                cr.move_to(x, y)
+
+                # Draw curves through intermediate points
+                for i in range(1, len(brush.stroke) - 2):
+                    x1, y1 = brush.stroke[i]
+                    x2, y2 = brush.stroke[i + 1]
+                    ctrl_x, ctrl_y = (x1 + x2) / 2, (y1 + y2) / 2
+                    cr.curve_to(x1, y1, ctrl_x, ctrl_y, x2, y2)
+
+                # Connect the last two points with a straight line
+                x, y = brush.stroke[-1]
                 cr.line_to(x, y)
-            cr.stroke()
+
+                cr.stroke()
 
     def clear(self):
         self.brushes = []
