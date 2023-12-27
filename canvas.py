@@ -9,6 +9,7 @@ from gi.repository import Gtk, Gdk, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 import random
 
+
 class Brush(object):
     def __init__(self, width, rgba_color):
         self.width = width
@@ -26,6 +27,7 @@ class Canvas(object):
         self.brush_width = 3
         self.eraser_size = 50**2
         self.mode = "draw"
+        self.dee = 0
 
     def draw(self, widget, cr):
         da = widget
@@ -50,14 +52,30 @@ class Canvas(object):
                 for i in range(1, len(brush.stroke) - 2):
                     x1, y1 = brush.stroke[i]
                     x2, y2 = brush.stroke[i + 1]
-                    ctrl_x, ctrl_y = (x1 + x2) / 2, (y1 + y2) / 2
-                    cr.curve_to(x1, y1, ctrl_x, ctrl_y, x2, y2)
+                    self.draw_smooty(cr, x1, y1, x2, y2)
 
                 # Connect the last two points with a straight line
                 x, y = brush.stroke[-1]
-                cr.line_to(x, y)
+                #cr.line_to(x, y)
 
                 cr.stroke()
+
+    def draw_smooty(self, cr, x1, y1, x2, y2):
+        self.dee += 1
+        ctrl_x1, ctrl_y1 = self.calculate_control_points(x1, y1, x2, y2)
+        if abs(x1-x2) > 50 or abs(y1-y2) > 50:
+            self.draw_smooty(cr, x1, y1, ctrl_x1, ctrl_y1)
+            GLib.idle_add(self.draw_area.queue_draw)
+        else:
+            cr.curve_to(ctrl_x1, ctrl_y1, x1, y1, x2, y2)
+        self.dee -= 1
+
+
+    def calculate_control_points(self, x1, y1, x2, y2):
+        # Calculate control points for a smooth Bezier curve
+        ctrl_x1 = (2 * x1 + x2) / 3
+        ctrl_y1 = (2 * y1 + y2) / 3
+        return ctrl_x1, ctrl_y1
 
     def clear(self):
         self.brushes = []
